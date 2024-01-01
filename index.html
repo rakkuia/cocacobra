@@ -102,39 +102,6 @@
           border: 4px solid #7b00c2;
         }
       }
-      #mobile-controls {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      #middle-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        max-width: 200px;
-        margin: 0 auto;
-      }
-
-      #up-button-container,
-      #down-button-container {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-      }
-
-      @media (max-width: 600px) {
-        #mobile-controls {
-          display: flex;
-        }
-      }
-      button {
-        padding: 10px 20px;
-        font-size: 18px;
-        margin: 1px;
-      }
     </style>
   </head>
   <div id="colorOverlay"></div>
@@ -145,18 +112,7 @@
       <h4 id="topScore">Top score: 0</h4>
       <button id="toggleButton" style="margin: 0">Toggle Music On/Off</button>
       <canvas id="snakeCanvas" width="600" height="550"></canvas>
-      <div id="mobile-controls">
-        <div id="up-button-container">
-          <button id="up-button">Up</button>
-        </div>
-        <div id="middle-controls">
-          <button id="left-button">Left</button>
-          <button id="right-button">Right</button>
-        </div>
-        <div id="down-button-container">
-          <button id="down-button">Down</button>
-        </div>
-      </div>
+      
       <audio autoplay id="myAudio" src="smellsblood.mp3" loop></audio>
     </div>
     <script>
@@ -294,24 +250,6 @@
               break;
           }
         }
-
-        document.getElementById("up-button").addEventListener("click", () => {
-          direction = "up";
-        });
-
-        document.getElementById("down-button").addEventListener("click", () => {
-          direction = "down";
-        });
-
-        document.getElementById("left-button").addEventListener("click", () => {
-          direction = "left";
-        });
-
-        document
-          .getElementById("right-button")
-          .addEventListener("click", () => {
-            direction = "right";
-          });
         function resetGame() {
           if (counter > topScore) {
             topScore = counter;
