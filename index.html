@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CocaCobra</title>
+    <style>
+      body {
+        overflow: hidden;
+        background-image: url("background.gif");
+        background-repeat: no-repeat;
+        background-size: cover;
+        color: #fff;
+        font-family: sans-serif;
+        text-align: center;
+        animation: changeBg 15s infinite;
+      }
+
+      #colorOverlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        animation: changeOverlay 10s infinite;
+      }
+      #content {
+        position: relative;
+
+        z-index: 2;
+      }
+
+      @keyframes changeBg {
+        0%,
+        100% {
+          background-image: url("background.gif");
+        }
+        16% {
+          background-image: url("background2.gif");
+        }
+        33% {
+          background-image: url("background3.gif");
+        }
+        50% {
+          background-image: url("background4.gif");
+        }
+        64% {
+          background-image: url("background5.gif");
+        }
+        83% {
+          background-image: url("background6.gif");
+        }
+        90% {
+          background-image: url("background7.gif");
+        }
+      }
+
+      @keyframes changeOverlay {
+        0% {
+          background-color: rgba(0, 96, 134, 0.8);
+        }
+        25% {
+          background-color: rgba(118, 0, 0, 0.8);
+        }
+        50% {
+          background-color: rgba(0, 96, 0, 0.8);
+        }
+        75% {
+          background-color: rgba(0, 0, 192, 0.8);
+        }
+        100% {
+          background-color: rgba(123, 0, 194, 0.8);
+        }
+      }
+      canvas {
+        background-color: white;
+        border: 4px solid #ff0000;
+        border-radius: 2%;
+        display: block;
+        margin: 20px auto;
+        animation: changeBorder 1s infinite;
+      }
+      audio {
+        display: none;
+      }
+
+      @keyframes changeBorder {
+        100% {
+          border: 4px solid #00b7ff;
+        }
+        75% {
+          border: 4px solid rgb(255, 0, 0);
+        }
+        50% {
+          border: 4px solid rgb(0, 255, 0);
+        }
+        25% {
+          border: 4px solid rgb(7, 7, 255);
+        }
+        0% {
+          border: 4px solid #7b00c2;
+        }
+      }
+      #mobile-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #middle-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+
+      #up-button-container,
+      #down-button-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+
+      @media (max-width: 600px) {
+        #mobile-controls {
+          display: flex;
+        }
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 18px;
+        margin: 1px;
+      }
+    </style>
+  </head>
+  <div id="colorOverlay"></div>
+
+  <body>
+    <div id="content">
+      <h1 id="counter"></h1>
+      <h4 id="topScore">Top score: 0</h4>
+      <button id="toggleButton" style="margin: 0">Toggle Music On/Off</button>
+      <canvas id="snakeCanvas" width="600" height="550"></canvas>
+      <div id="mobile-controls">
+        <div id="up-button-container">
+          <button id="up-button">Up</button>
+        </div>
+        <div id="middle-controls">
+          <button id="left-button">Left</button>
+          <button id="right-button">Right</button>
+        </div>
+        <div id="down-button-container">
+          <button id="down-button">Down</button>
+        </div>
+      </div>
+      <audio autoplay id="myAudio" src="smellsblood.mp3" loop></audio>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const audioElement = document.getElementById("myAudio");
+        const toggleButton = document.getElementById("toggleButton");
+
+        toggleButton.addEventListener("click", () => {
+          if (audioElement.paused) {
+            audioElement.play().catch((error) => {
+              console.error("Erro na reprodução do áudio:", error);
+            });
+          } else {
+            audioElement.pause();
+          }
+        });
+        const htmlCounter = document.getElementById("counter");
+        const canvas = document.getElementById("snakeCanvas");
+        const ctx = canvas.getContext("2d");
+        let counter = 0;
+        let frameCount = 100;
+        let topScore = 0;
+        htmlCounter.innerHTML = `Score : ${counter}`;
+        const gridSize = 20;
+        const squareSize = 20;
+
+        let snake = [{ x: 4, y: 4 }];
+        let direction = "right";
+
+        let foodPadding = 2;
+        food = {
+          x:
+            Math.floor(
+              Math.random() * (canvas.width / squareSize - 2 * foodPadding)
+            ) + foodPadding,
+          y:
+            Math.floor(
+              Math.random() * (canvas.height / squareSize - 2 * foodPadding)
+            ) + foodPadding,
+        };
+
+        function getRandomColor() {
+          const r = Math.floor(Math.random() * 256);
+          const g = Math.floor(Math.random() * 256);
+          const b = Math.floor(Math.random() * 256);
+          return `rgb(${r},${g},${b})`;
+        }
+        function draw() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "#00F";
+          snake.forEach((segment) => {
+            ctx.fillRect(
+              segment.x * gridSize,
+              segment.y * gridSize,
+              squareSize,
+              squareSize
+            );
+          });
+          if (frameCount % 10 === 0) {
+            ctx.fillStyle = getRandomColor();
+          }
+          ctx.fillRect(
+            food.x * gridSize,
+            food.y * gridSize,
+            squareSize,
+            squareSize
+          );
+        }
+        function move() {
+          const head = Object.assign({}, snake[0]);
+
+          switch (direction) {
+            case "up":
+              head.y -= 1;
+              break;
+            case "down":
+              head.y += 1;
+              break;
+            case "left":
+              head.x -= 1;
+              break;
+            case "right":
+              head.x += 1;
+              break;
+          }
+          snake.unshift(head);
+
+          if (
+            head.x < 0 ||
+            head.x >= canvas.width / gridSize ||
+            head.y < 0 ||
+            head.y >= canvas.height / gridSize
+          ) {
+            resetGame();
+            return;
+          }
+
+          if (head.x === food.x && head.y === food.y) {
+            counter++;
+            htmlCounter.innerHTML = `Score : ${counter}`;
+            console.log(counter);
+            food = {
+              x:
+                Math.floor(
+                  Math.random() * (canvas.width / squareSize - 2 * foodPadding)
+                ) + foodPadding,
+              y:
+                Math.floor(
+                  Math.random() * (canvas.height / squareSize - 2 * foodPadding)
+                ) + foodPadding,
+            };
+          } else {
+            snake.pop();
+          }
+        }
+
+        function handleKeyPress(e) {
+          switch (e.key) {
+            case "r":
+            case "R":
+              resetGame();
+              break;
+            case "ArrowUp":
+              direction = "up";
+              break;
+            case "ArrowDown":
+              direction = "down";
+              break;
+            case "ArrowLeft":
+              direction = "left";
+              break;
+            case "ArrowRight":
+              direction = "right";
+              break;
+          }
+        }
+
+        document.getElementById("up-button").addEventListener("click", () => {
+          direction = "up";
+        });
+
+        document.getElementById("down-button").addEventListener("click", () => {
+          direction = "down";
+        });
+
+        document.getElementById("left-button").addEventListener("click", () => {
+          direction = "left";
+        });
+
+        document
+          .getElementById("right-button")
+          .addEventListener("click", () => {
+            direction = "right";
+          });
+        function resetGame() {
+          if (counter > topScore) {
+            topScore = counter;
+            document.getElementById(
+              "topScore"
+            ).innerHTML = `Top score: ${topScore}`;
+          }
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          snake = [{ x: 4, y: 4 }];
+          direction = "right";
+          counter = 0;
+          htmlCounter.innerHTML = `Score : ${counter}`;
+
+          food = {
+            x:
+              Math.floor(
+                Math.random() * (canvas.width / squareSize - 2 * foodPadding)
+              ) + foodPadding,
+            y:
+              Math.floor(
+                Math.random() * (canvas.height / squareSize - 2 * foodPadding)
+              ) + foodPadding,
+          };
+        }
+
+        document.addEventListener("keydown", handleKeyPress);
+
+        function gameLoop() {
+          move();
+          draw();
+          requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+      });
+    </script>
+  </body>
+</html>
